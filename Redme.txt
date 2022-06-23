@@ -1,0 +1,18 @@
+Dynamic urls routing
+
+The key-value of dict must use the same quotation marks
+
+Specify url name in template engine: href="{% url room room.id %} <=> href="{% url <url_name> room.id %}
+
+Connect Django to Database (ORM - models usages)
+    + Define table database in models.py
+    + Migrate to sqlite3 database: python3.10 manage.py makemigrations
+    + Apply migrations: python3.10 manage.py migrate
+
+Create admin user:
+    python3.10 manage.py createsuperuser
+
+
+UI Development
+    - Template Inheritance: {{ extends ...}}
+    - Add template into other one: {{ include ... }}
