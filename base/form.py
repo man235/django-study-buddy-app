@@ -4,4 +4,4 @@ from .models import Room
 class RoomForm(ModelForm):
     class Meta:
         model = Room
-        fields = '__all__' # we can use the list like that ['name', 'body'] to specify which desired fields
+        fields = '__all__' # we can use the list or tuple like that ['name', 'body'] to specify the chosen desired fields
