@@ -91,10 +91,10 @@ def home(request):
 
     topics = Topic.objects.all()
 
-    # get room count
+    # count rooms
     room_count = rooms.count()
 
-    room_messages = Message.objects.all()
+    room_messages = Message.objects.filter(Q(room__topic__name__icontains=q))
 
     print(room_messages)
 
@@ -105,15 +105,23 @@ def home(request):
 
 
 
+def userProfile(request, pk):
+    user = User.objects.get(id=pk)
+    rooms = user.room_set.all()
+    room_message = user.message_set.all()   # _set.all() play with 
+
+    context = {'rooms': rooms, 'user': user}
+    
+    return render(request, 'base/profile.html', context)
+
+
+
 def room(request, pk):
     room = Room.objects.get(id=str(pk))
 
     room_messages = room.message_set.all().order_by('-created')     # orderd by newest created date
 
-    participants = room.participants.all()
-
-    print(participants)
-    
+    participants = room.participants.all()    
 
     if request.method == 'POST':
         message = Message.objects.create(
@@ -137,7 +145,9 @@ def createRoom(request):
     if request.method == 'POST':
         form = RoomForm(request.POST)
         if form.is_valid():
-            form.save() # save to the database
+            room = form.save(commit=False) # fetch room data first
+            room.host = request.user    # set host by the user makes request
+            room.save() # save to database
             return redirect(home)
 
     context = {'form': form}
