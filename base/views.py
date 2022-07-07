@@ -12,14 +12,6 @@ from .models import Room, Topic, models, Message
 from .form import RoomForm
 
 
-# must the same quotation marks between key-name and value
-# rooms = [ 
-#     {'id': 1, 'name': 'Lets learn python!'},
-#     {'id': 2, 'name': 'Design with me'},
-#     {'id': 3, 'name': 'Backend Developer'}
-# ]
-
-
 
 def loginPage(request):
     page = 'login'
@@ -33,7 +25,9 @@ def loginPage(request):
         except:
             messages.error(request, 'User does not exist')
 
-        user = authenticate(request, username=username, password=password)
+        user = authenticate(request, 
+                            username=username,
+                            password=password)
 
         if user is not None:
             login(request, user)
@@ -46,12 +40,10 @@ def loginPage(request):
     return render(request, 'base/login_register.html', context)
 
 
-
 def logoutUser(request):
     logout(request)
     
     return redirect('home')
-
 
 
 def registerPage(request):
@@ -78,7 +70,6 @@ def registerPage(request):
     return render(request, 'base/login_register.html', context)
 
 
-
 # Perform home page
 def home(request):
     q = request.GET.get('q') if request.GET.get('q') != None else ''    # equal to paramter passed into the url
@@ -96,24 +87,22 @@ def home(request):
 
     room_messages = Message.objects.filter(Q(room__topic__name__icontains=q))
 
-    print(room_messages)
-
     context = {'rooms': rooms, 'topics': topics, 'room_count': room_count,
                 'room_messages': room_messages}
 
     return render(request, 'base/home.html', context)
 
 
-
 def userProfile(request, pk):
     user = User.objects.get(id=pk)
     rooms = user.room_set.all()
-    room_message = user.message_set.all()   # _set.all() play with 
+    room_messages = user.message_set.all()   # get messages that correspond to the user owner 
+    topics = Topic.objects.all
 
-    context = {'rooms': rooms, 'user': user}
+    context = {'rooms': rooms, 'user': user,
+               'room_messages': room_messages, 'topics': topics}
     
     return render(request, 'base/profile.html', context)
-
 
 
 def room(request, pk):
@@ -137,44 +126,60 @@ def room(request, pk):
     return render(request, 'base/room.html', context)
 
 
-
 # restrict user access
 @login_required(login_url='/login')
 def createRoom(request):
-    form = RoomForm()
-    if request.method == 'POST':
-        form = RoomForm(request.POST)
-        if form.is_valid():
-            room = form.save(commit=False) # fetch room data first
-            room.host = request.user    # set host by the user makes request
-            room.save() # save to database
-            return redirect(home)
+    form = RoomForm() 
+    topics = Topic.objects.all()
 
-    context = {'form': form}
+    if request.method == 'POST':
+        # get the topic field's name
+        topic_name = request.POST.get('topic')
+
+        # define the new topic or it existed
+        topic, created = Topic.objects.get_or_create(name=topic_name)
+        
+        Room.objects.create(
+            host=request.user,
+            topic=topic,
+            name=request.POST.get('name'),
+            description=request.POST.get('description'),
+        )
+            
+        return redirect(home)
+
+    context = {'form': form, 'topics': topics}
 
     return render(request, 'base/room_form.html', context)
-
 
 
 @login_required(login_url='login')
 def updateRoom(request, pk):
     room = Room.objects.get(id=pk)
     form = RoomForm(instance=room)  # passing the above room
+    topics = Topic.objects.all()
 
-    # validate host and users of this room
+    # validate the host and users of this room
     if request.user != room.host:
         return HttpResponse('Yout are not allowed here!!')
 
     if request.method == 'POST':
-        form = RoomForm(request.POST, instance=room)
-        if form.is_valid():
-            form.save()
-            return redirect(home)
+        # get the topic field's name
+        topic_name = request.POST.get('topic')
+        # define the new topic or it existed
+        topic, created = Topic.objects.get_or_create(name=topic_name)
 
-    context = {'form': form}
+        room.name = request.POST.get('name')
+        room.topic = topic
+        room.description = request.POST.get('description')
+
+        room.save()
+
+        return redirect(home)
+
+    context = {'form': form, 'topics': topics, 'room': room}
 
     return render(request, 'base/room_form.html', context)
-
 
 
 @login_required(login_url='login')
@@ -190,7 +195,6 @@ def deleteRoom(request, pk):
     context = {'obj': room}
 
     return render(request, 'base/delete.html', context)
-
 
 
 @login_required(login_url='login')

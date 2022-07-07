@@ -16,3 +16,6 @@ Create admin user:
 UI Development
     - Template Inheritance: {{ extends ...}}
     - Add template into other one: {{ include ... }}
+
+Template:
+    - Need to be added context
