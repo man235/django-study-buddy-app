@@ -9,7 +9,7 @@ from django.contrib.messages import constants as messages
 from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm
 from .models import Room, Topic, models, Message
-from .form import RoomForm
+from .form import RoomForm, UserForm
 
 
 
@@ -156,7 +156,7 @@ def createRoom(request):
 @login_required(login_url='login')
 def updateRoom(request, pk):
     room = Room.objects.get(id=pk)
-    form = RoomForm(instance=room)  # passing the above room
+    form = RoomForm(instance=room)  # passing the above room instance to the form
     topics = Topic.objects.all()
 
     # validate the host and users of this room
@@ -207,6 +207,24 @@ def deleteMessage(request, pk):
     if request.method == 'POST':
         message.delete()
         return redirect('home')
+        
     context = {'obj': message}
 
     return render(request, 'base/delete.html', context)
+
+
+@login_required(login_url='login')
+def updateUser(request):
+    user = request.user
+
+    form = UserForm(instance=user)
+
+    if request.method == 'POST':
+        form = UserForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            return redirect('user-profile', pk=user.id)
+
+    context = {'form': form}
+
+    return render(request, 'base/update_user.html', context)
