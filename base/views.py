@@ -1,3 +1,4 @@
+import re
 from urllib import request
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
@@ -40,10 +41,12 @@ def loginPage(request):
     return render(request, 'base/login_register.html', context)
 
 
+
 def logoutUser(request):
     logout(request)
     
     return redirect('home')
+
 
 
 def registerPage(request):
@@ -70,6 +73,7 @@ def registerPage(request):
     return render(request, 'base/login_register.html', context)
 
 
+
 # Perform home page
 def home(request):
     q = request.GET.get('q') if request.GET.get('q') != None else ''    # equal to paramter passed into the url
@@ -79,8 +83,9 @@ def home(request):
         Q(name__icontains=q) |
         Q(description__icontains=q)       
     ) 
-
-    topics = Topic.objects.all()
+    
+    # limit 5 displayed topics in home page
+    topics = Topic.objects.all()[0:5]
 
     # count rooms
     room_count = rooms.count()
@@ -105,6 +110,7 @@ def userProfile(request, pk):
     return render(request, 'base/profile.html', context)
 
 
+
 def room(request, pk):
     room = Room.objects.get(id=str(pk))
 
@@ -124,6 +130,7 @@ def room(request, pk):
                 'participants': participants}
 
     return render(request, 'base/room.html', context)
+
 
 
 # restrict user access
@@ -151,6 +158,7 @@ def createRoom(request):
     context = {'form': form, 'topics': topics}
 
     return render(request, 'base/room_form.html', context)
+
 
 
 @login_required(login_url='login')
@@ -182,6 +190,7 @@ def updateRoom(request, pk):
     return render(request, 'base/room_form.html', context)
 
 
+
 @login_required(login_url='login')
 def deleteRoom(request, pk):
     room = Room.objects.get(id=pk)
@@ -195,6 +204,7 @@ def deleteRoom(request, pk):
     context = {'obj': room}
 
     return render(request, 'base/delete.html', context)
+
 
 
 @login_required(login_url='login')
@@ -213,6 +223,7 @@ def deleteMessage(request, pk):
     return render(request, 'base/delete.html', context)
 
 
+
 @login_required(login_url='login')
 def updateUser(request):
     user = request.user
@@ -228,3 +239,14 @@ def updateUser(request):
     context = {'form': form}
 
     return render(request, 'base/update_user.html', context)
+
+
+
+def topicsPage(request):
+    q = request.GET.get('q') if request.GET.get('q') != None else ''    # equal to paramter passed into the url
+
+    topics = Topic.objects.filter(name__icontains=q)
+
+    context = {'topics': topics}
+    return render(request, 'base/topics.html', context)
+
