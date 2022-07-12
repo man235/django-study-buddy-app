@@ -40,6 +40,9 @@ INSTALLED_APPS = [
 
     # Django need to know my app
     'base.apps.BaseConfig',
+
+    # Django Rest Framework
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
