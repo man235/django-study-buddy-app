@@ -10,6 +10,7 @@ class MyUserCreationForm(UserCreationForm):
         fields = ['name', 'username', 'email', 'password1', 'password2']
 
 
+
 class RoomForm(ModelForm):
     class Meta:
         ''' 
@@ -18,6 +19,7 @@ class RoomForm(ModelForm):
         model = Room
         fields = '__all__' # we can use the list or tuple like that ['name', 'body'] to specify the chosen desired fields
         exclude =   ('host', 'participant') # disiable fields
+
 
 
 class UserForm(ModelForm):

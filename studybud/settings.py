@@ -64,7 +64,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
 ]
 
-# SITE_ID = 1
+SITE_ID = 1
 
 ROOT_URLCONF = 'studybud.urls'
 
