@@ -1,16 +1,12 @@
-import re
-from urllib import request
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required   # use to restrict user access
 from django.db.models import Q
 from django.contrib.messages import constants as messages
 from django.contrib import messages
-from django.contrib.auth.forms import UserCreationForm
-from .models import Room, Topic, models, Message
-from .form import RoomForm, UserForm
+from .models import Room, Topic, Message, User
+from .form import RoomForm, UserForm, MyUserCreationForm
 
 
 
@@ -18,16 +14,16 @@ def loginPage(request):
     page = 'login'
 
     if request.method == 'POST':
-        username = request.POST.get('username').lower()
+        email = request.POST.get('email').lower()
         password = request.POST.get('password')
 
         try:
-            user = User.objects.get(username=username)
+            user = User.objects.get(email=email)
         except:
             messages.error(request, 'User does not exist')
 
         user = authenticate(request, 
-                            username=username,
+                            email=email,
                             password=password)
 
         if user is not None:
@@ -51,10 +47,10 @@ def logoutUser(request):
 
 def registerPage(request):
     # page = 'register'
-    form = UserCreationForm()
+    form = MyUserCreationForm()
 
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = MyUserCreationForm(request.POST)
         if form.is_valid():
             # commit=False : return a object haven't exist in database yet
             # this creates, but don't save the new form instance
@@ -125,6 +121,9 @@ def room(request, pk):
             body = request.POST.get('body'),
         )
         return redirect('room', pk=room.id)
+
+    # add participant to the room
+    room.participants.add(request.user)
 
     context = {'room': room, 'room_messages': room_messages,
                 'participants': participants}
@@ -227,11 +226,10 @@ def deleteMessage(request, pk):
 @login_required(login_url='login')
 def updateUser(request):
     user = request.user
-
     form = UserForm(instance=user)
 
     if request.method == 'POST':
-        form = UserForm(request.POST, instance=user)
+        form = UserForm(request.POST, request.FILES, instance=user)
         if form.is_valid():
             form.save()
             return redirect('user-profile', pk=user.id)
