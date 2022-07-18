@@ -6,7 +6,7 @@ from .models import Message, Room, Topic, User
 
 
 
-""" Create all below tables in admin panel """
+"""Create all below tables in admin panel."""
 admin.site.register(User)
 admin.site.register(Room)
 admin.site.register(Topic)
